@@ -1,18 +1,92 @@
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local hrp = character:WaitForChild("HumanoidRootPart")
-local brainrotsFolder = workspace:WaitForChild("Brainrots")
+-- Steal a Brainrot Hub - Script Completo con OrionLib
 
-while true do
-    for _, brainrot in pairs(brainrotsFolder:GetChildren()) do
-        if brainrot:IsA("Model") and brainrot:FindFirstChildWhichIsA("BasePart") then
-            local part = brainrot:FindFirstChildWhichIsA("BasePart")
-            if (part.Position - hrp.Position).Magnitude < 15 then
-                firetouchinterest(hrp, part, 0)
-                wait()
-                firetouchinterest(hrp, part, 1)
-            end
+-- 1. Cargar OrionLib con pcall
+local success, OrionLib_or_err = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
+end)
+
+if not success or type(OrionLib_or_err) ~= "table" then
+    warn("OrionLib no se cargó:", OrionLib_or_err)
+    return
+end
+
+local OrionLib = OrionLib_or_err
+
+-- 2. Configuración ajustable
+local roboDistancia = 15      -- Distancia máxima para robar
+local roboIntervalo = 0.3     -- Intervalo entre ciclos de robo
+
+-- 3. Estado de toggles
+local roboActivo = false
+
+-- 4. Setup de UI y funcionalidad dentro de pcall
+local ok, err = pcall(function()
+    -- 4.1 Crear ventana principal
+    local ventana = OrionLib:MakeWindow({
+        Name = "Steal a Brainrot",
+        HidePremium = false,
+        SaveConfig = false,
+        IntroEnabled = true,
+        IntroText = "Brainrot Hub",
+        ConfigFolder = "BrainrotConfig"
+    })
+
+    -- 4.2 Pestaña Principal
+    local principalTab = ventana:MakeTab({
+        Name = "Principal",
+        Icon = "rbxassetid://4483345998",
+        PremiumOnly = false
+    })
+
+    -- 4.3 Toggle de Robo Instantáneo
+    principalTab:AddToggle({
+        Name = "Robo Instantáneo",
+        Default = false,
+        Callback = function(value)
+            roboActivo = value
         end
-    end
-    wait(0.3)
+    })
+
+    -- 4.4 Notificación de carga exitosa
+    OrionLib:MakeNotification({
+        Name = "Carga Exitosa",
+        Content = "Brainrot Hub se cargó correctamente",
+        Duration = 5,
+        Image = "rbxassetid://4483345998"
+    })
+
+    -- 4.5 Bucle de robo automático
+    spawn(function()
+        while true do
+            if roboActivo then
+                local plr = game.Players.LocalPlayer
+                local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                local brainrots = workspace:FindFirstChild("Brainrots")
+
+                if hrp and brainrots then
+                    for _, br in pairs(brainrots:GetChildren()) do
+                        local part = (br:IsA("Model") and br:FindFirstChildWhichIsA("BasePart")) or br
+                        if part and part:IsA("BasePart") and
+                           (part.Position - hrp.Position).Magnitude < roboDistancia then
+                            firetouchinterest(hrp, part, 0)
+                            wait()
+                            firetouchinterest(hrp, part, 1)
+                        end
+                    end
+                end
+            end
+            wait(roboIntervalo)
+        end
+    end)
+end)
+
+-- 5. Notificación de error si el setup falla
+if not ok then
+    OrionLib:MakeNotification({
+        Name = "Error al cargar",
+        Content = "Ocurrió un error: " .. tostring(err),
+        Duration = 7,
+        Image = "rbxassetid://4483345998"
+    })
+    warn("Brainrot Hub – Error:", err)
 end
