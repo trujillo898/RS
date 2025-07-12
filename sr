@@ -1,23 +1,18 @@
--- Robo instantáneo de Brainrots
-local plr = game.Players.LocalPlayer
-local char = plr.Character or plr.CharacterAdded:Wait()
-local hrp = char:WaitForChild("HumanoidRootPart")
-local brainrots = workspace:WaitForChild("Brainrots")
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
+local brainrotsFolder = workspace:WaitForChild("Brainrots")
 
--- Función de robo instantáneo
-local function steal()
-    for _, brainrot in pairs(brainrots:GetChildren()) do
-        if brainrot:IsA("BasePart") then
-            if (brainrot.Position - hrp.Position).Magnitude < 15 then
-                firetouchinterest(hrp, brainrot, 0)
-                firetouchinterest(hrp, brainrot, 1)
+while true do
+    for _, brainrot in pairs(brainrotsFolder:GetChildren()) do
+        if brainrot:IsA("Model") and brainrot:FindFirstChildWhichIsA("BasePart") then
+            local part = brainrot:FindFirstChildWhichIsA("BasePart")
+            if (part.Position - hrp.Position).Magnitude < 15 then
+                firetouchinterest(hrp, part, 0)
+                wait()
+                firetouchinterest(hrp, part, 1)
             end
         end
     end
-end
-
--- Bucle constante
-while true do
-    steal()
-    wait(0.2) -- Ajusta esto si quieres aún más velocidad
+    wait(0.3)
 end
